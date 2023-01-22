@@ -1,0 +1,43 @@
+- hosts: all
+  tasks:
+    # Update system-level dependencies
+    - name: Update and upgrade apt packages
+      become: true
+      apt:
+        upgrade: dist
+        update_cache: true
+
+    - name: Install PowerShell dependencies
+      become: true
+      apt:
+        name:
+          - 'libssl1.0.[0-9]'
+          - libunwind8
+        state: present
+        update_cache: true
+
+    - name: Create powershell directory if it does not exist
+      ansible.builtin.file:
+        path: /opt/microsoft/powershell/7
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Download & Unarchive PowerShell
+      ansible.builtin.unarchive:
+        src: https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/powershell-7.3.1-linux-arm32.tar.gz
+        dest: /opt/microsoft/powershell/7
+        remote_src: yes
+      become: true
+
+    - name: Give execute permissions to pwsh
+      ansible.builtin.file:
+        path: /opt/microsoft/powershell/7/pwsh
+        mode: '0555'
+
+    - name: Create a symbolic link for pwsh
+      ansible.builtin.file:
+        src: /opt/microsoft/powershell/7/pwsh
+        dest: /usr/bin/pwsh
+        state: link
+      become: true
